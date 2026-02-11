@@ -24,6 +24,21 @@ ipcMain.handle("start-minecraft", async () => {
   exec('"C:\\Program Files (x86)\\Minecraft Launcher\\MinecraftLauncher.exe"');
 });
 
+const { ipcMain } = require('electron');
+
+ipcMain.handle('microsoft-auth', async () => {
+  // Doe de auth hier met node-fetch (geen CORS)
+  const fetch = require('node-fetch');
+  
+  const response = await fetch('https://login.live.com/oauth20_connect.srf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'client_id=00000000402b5328&scope=service::user.auth.xboxlive.com::MBI_SSL'
+  });
+  
+  return await response.json();
+});
+
 /* Download mod */
 ipcMain.handle("download-mod", async (event, url, filename) => {
   const modsFolder = path.join(
