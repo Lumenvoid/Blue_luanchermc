@@ -1,5 +1,5 @@
 {
-  "name": "Blue Launcher",
+  "name": "blue-launcher",
   "version": "1.0.0",
   "description": "Loader",
   "main": "main.js",
@@ -12,6 +12,7 @@
   },
   "build": {
     "appId": "com.roblox.loader",
+    "productName": "Blue Launcher",
     "win": {
       "target": "portable"
     }
