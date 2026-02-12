@@ -6,7 +6,7 @@ const querystring = require('querystring');
 let mainWindow;
 
 // VERVANG DIT MET JE EIGEN CLIENT ID
-const CLIENT_ID = '36314525-156f-4b1b-9909-d66763e7e333';
+const CLIENT_ID = 'f457da6e-1e63-45dd-81c6-2f9370d484e3';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
