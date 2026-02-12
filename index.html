@@ -13,14 +13,18 @@
             --bg-tertiary: #1f1f1f;
             --bg-hover: #2a2a2a;
             --accent-blue: #0078d4;
+            --accent-blue-hover: #106ebe;
             --accent-green: #107c10;
+            --accent-green-hover: #16a616;
             --text-primary: #ffffff;
             --text-secondary: #9a9a9a;
             --border-color: #2d2d2d;
+            --error: #d83b01;
+            --warning: #ffc107;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             height: 100vh;
@@ -56,6 +60,7 @@
             border-radius: 8px;
             margin-bottom: 24px;
             cursor: pointer;
+            outline: none;
         }
 
         .nav-btn {
@@ -78,7 +83,10 @@
             color: var(--text-primary);
         }
 
-        .nav-btn.active { background: var(--accent-blue); color: white; }
+        .nav-btn.active { 
+            background: var(--accent-blue); 
+            color: white; 
+        }
 
         .user-section {
             margin-top: auto;
@@ -106,6 +114,12 @@
             border: 3px solid var(--border-color);
             overflow: hidden;
             position: relative;
+            transition: all 0.3s;
+        }
+
+        .avatar.online {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.4);
         }
 
         .avatar img {
@@ -115,21 +129,31 @@
             image-rendering: pixelated;
         }
 
-        .avatar.online {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 20px rgba(16, 124, 16, 0.3);
-        }
-
         .username {
             font-weight: 700;
             font-size: 18px;
             margin-bottom: 4px;
         }
 
-        .user-email {
-            font-size: 12px;
-            color: var(--text-secondary);
+        .user-status {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             margin-bottom: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .status-dot.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
         }
 
         .login-btn, .logout-btn {
@@ -140,6 +164,7 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
+            font-size: 14px;
         }
 
         .login-btn {
@@ -147,7 +172,7 @@
             color: white;
         }
 
-        .login-btn:hover { background: #106ebe; }
+        .login-btn:hover { background: var(--accent-blue-hover); }
 
         .logout-btn {
             background: transparent;
@@ -156,9 +181,9 @@
         }
 
         .logout-btn:hover {
-            background: #d83b01;
+            background: var(--error);
             color: white;
-            border-color: #d83b01;
+            border-color: var(--error);
         }
 
         .content {
@@ -168,7 +193,10 @@
         }
 
         .section { display: none; }
-        .section.active { display: block; animation: fadeIn 0.3s; }
+        .section.active { 
+            display: block; 
+            animation: fadeIn 0.3s; 
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -176,7 +204,11 @@
         }
 
         h1 { font-size: 36px; margin-bottom: 8px; }
-        .subtitle { color: var(--text-secondary); margin-bottom: 32px; font-size: 16px; }
+        .subtitle { 
+            color: var(--text-secondary); 
+            margin-bottom: 32px; 
+            font-size: 16px; 
+        }
 
         .play-card {
             background: var(--bg-secondary);
@@ -214,13 +246,13 @@
         }
 
         .play-btn:hover:not(:disabled) {
-            background: #16a616;
+            background: var(--accent-green-hover);
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(16, 124, 16, 0.3);
         }
 
         .play-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
         }
 
@@ -236,6 +268,7 @@
         }
 
         .progress-bar.active { display: block; }
+
         .progress-fill {
             height: 100%;
             background: var(--accent-green);
@@ -243,7 +276,6 @@
             transition: width 0.3s;
         }
 
-        /* Mods */
         .search-box {
             display: flex;
             gap: 12px;
@@ -366,7 +398,6 @@
             cursor: default;
         }
 
-        /* Skins */
         .skins-container {
             display: grid;
             grid-template-columns: 300px 1fr;
@@ -443,13 +474,17 @@
             color: white;
         }
 
+        .skin-btn.primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .skin-btn.secondary {
             background: var(--bg-tertiary);
             color: var(--text-secondary);
             border: 1px solid var(--border-color);
         }
 
-        /* Modals */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -520,7 +555,6 @@
             cursor: pointer;
         }
 
-        /* Toast */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -534,12 +568,13 @@
             padding: 16px 24px;
             border-radius: 12px;
             margin-top: 8px;
-            border-left: 4px solid var(--success);
+            border-left: 4px solid var(--accent-green);
             animation: slideIn 0.3s;
             box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
 
         .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
 
         @keyframes slideIn {
             from { transform: translateX(400px); opacity: 0; }
@@ -557,6 +592,34 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .skins-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .skin-item {
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .skin-item:hover {
+            border-color: var(--accent-blue);
+            transform: scale(1.05);
+        }
+
+        .skin-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body>
@@ -565,7 +628,7 @@
             <div class="logo">Blue Launcher</div>
             
             <select class="version-select" id="versionSelect">
-                <option>Loading...</option>
+                <option>Loading versions...</option>
             </select>
 
             <nav>
@@ -578,7 +641,10 @@
                 <div class="user-card">
                     <div class="avatar" id="userAvatar">?</div>
                     <div class="username" id="username">Guest</div>
-                    <div class="user-email" id="userEmail">Not logged in</div>
+                    <div class="user-status" id="userStatus">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Not logged in</span>
+                    </div>
                     <button class="login-btn" id="authBtn" onclick="handleAuth()">Sign in with Microsoft</button>
                 </div>
             </div>
@@ -640,9 +706,9 @@
                     
                     <div>
                         <h3 style="margin-bottom: 16px;">Your Skins</h3>
-                        <div id="skinsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px;">
-                            <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; text-align: center; color: var(--text-secondary);">
-                                No skins yet
+                        <div class="skins-list" id="skinsList">
+                            <div style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 40px;">
+                                No skins uploaded yet
                             </div>
                         </div>
                     </div>
@@ -687,12 +753,21 @@
     <script>
         let authState = { isAuthenticated: false, user: null, tokens: null };
         let selectedSkin = null;
+        let currentVersion = '1.21.1';
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             loadVersions();
             loadMods();
+            
+            // Listen for launch status updates
+            if (window.electronAPI?.onLaunchStatus) {
+                window.electronAPI.onLaunchStatus((status) => {
+                    const btn = document.getElementById('playBtn');
+                    if (btn) btn.textContent = status;
+                });
+            }
         });
 
         function switchTab(tab, btn) {
@@ -724,58 +799,62 @@
             document.getElementById('deviceModal').classList.remove('hidden');
             document.getElementById('authStatus').innerHTML = '<div class="loading-spinner"></div> Connecting...';
             
-            const result = await window.electronAPI.startMicrosoftAuth();
-            
-            if (!result.success) {
-                showToast('Auth failed: ' + result.error, 'error');
-                return;
-            }
+            try {
+                const result = await window.electronAPI.startMicrosoftAuth();
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
 
-            document.getElementById('deviceCode').textContent = result.userCode;
-            navigator.clipboard.writeText(result.userCode);
-            
-            // Poll
-            let attempts = 0;
-            const poll = async () => {
-                attempts++;
-                if (attempts > 60) {
-                    showToast('Timeout', 'error');
-                    return;
-                }
+                document.getElementById('deviceCode').textContent = result.userCode;
+                navigator.clipboard.writeText(result.userCode);
                 
-                document.getElementById('authStatus').textContent = `Waiting... (${attempts}/60)`;
-                
-                const tokenResult = await window.electronAPI.pollForToken(result.deviceCode, result.interval);
-                
-                if (tokenResult.pending) {
-                    setTimeout(poll, (result.interval || 5) * 1000);
-                    return;
-                }
-                
-                if (!tokenResult.success) {
-                    showToast(tokenResult.error, 'error');
-                    return;
-                }
-                
-                // SUCCESS - Update alles
-                authState = {
-                    isAuthenticated: true,
-                    user: tokenResult.user,
-                    tokens: tokenResult.tokens
+                // Poll for token
+                let attempts = 0;
+                const poll = async () => {
+                    attempts++;
+                    if (attempts > 60) {
+                        throw new Error('Timeout');
+                    }
+                    
+                    document.getElementById('authStatus').textContent = `Waiting... (${attempts}/60)`;
+                    
+                    const tokenResult = await window.electronAPI.pollForToken(result.deviceCode, result.interval);
+                    
+                    if (tokenResult.pending) {
+                        setTimeout(poll, (result.interval || 5) * 1000);
+                        return;
+                    }
+                    
+                    if (!tokenResult.success) {
+                        throw new Error(tokenResult.error);
+                    }
+                    
+                    // SUCCESS
+                    authState = {
+                        isAuthenticated: true,
+                        user: tokenResult.user,
+                        tokens: tokenResult.tokens
+                    };
+                    
+                    localStorage.setItem('blue_launcher_auth', JSON.stringify({
+                        user: tokenResult.user,
+                        tokens: tokenResult.tokens,
+                        timestamp: Date.now()
+                    }));
+                    
+                    updateUserUI();
+                    document.getElementById('deviceModal').classList.add('hidden');
+                    showToast(`Welcome, ${tokenResult.user.name}!`, 'success');
                 };
                 
-                localStorage.setItem('blue_launcher_auth', JSON.stringify({
-                    user: tokenResult.user,
-                    tokens: tokenResult.tokens,
-                    timestamp: Date.now()
-                }));
+                poll();
                 
-                updateUserUI();
-                document.getElementById('deviceModal').classList.add('hidden');
-                showToast(`Welcome, ${tokenResult.user.name}!`, 'success');
-            };
-            
-            poll();
+            } catch (error) {
+                console.error('Auth error:', error);
+                document.getElementById('authStatus').innerHTML = `<span style="color: var(--error)">${error.message}</span>`;
+                showToast('Auth failed: ' + error.message, 'error');
+            }
         }
 
         function checkAuth() {
@@ -786,6 +865,8 @@
                     if (Date.now() - data.timestamp < 86400000) {
                         authState = { isAuthenticated: true, user: data.user, tokens: data.tokens };
                         updateUserUI();
+                    } else {
+                        localStorage.removeItem('blue_launcher_auth');
                     }
                 } catch (e) {}
             }
@@ -794,10 +875,11 @@
         function updateUserUI() {
             const avatar = document.getElementById('userAvatar');
             const username = document.getElementById('username');
-            const email = document.getElementById('userEmail');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
             const btn = document.getElementById('authBtn');
 
-            if (authState.isAuthenticated) {
+            if (authState.isAuthenticated && authState.user) {
                 // Avatar
                 if (authState.user.skins?.length > 0) {
                     const skin = authState.user.skins.find(s => s.state === 'ACTIVE') || authState.user.skins[0];
@@ -807,10 +889,13 @@
                 }
                 avatar.classList.add('online');
                 
-                // Text
+                // Status
+                statusDot.classList.add('online');
+                statusText.textContent = 'Online';
+                statusText.style.color = 'var(--accent-green)';
+                
+                // Username
                 username.textContent = authState.user.name;
-                email.textContent = 'Logged in';
-                email.style.color = '#107c10';
                 
                 // Button
                 btn.textContent = 'Logout';
@@ -818,9 +903,10 @@
             } else {
                 avatar.textContent = '?';
                 avatar.classList.remove('online');
+                statusDot.classList.remove('online');
+                statusText.textContent = 'Not logged in';
+                statusText.style.color = '';
                 username.textContent = 'Guest';
-                email.textContent = 'Not logged in';
-                email.style.color = '';
                 btn.textContent = 'Sign in with Microsoft';
                 btn.className = 'login-btn';
             }
@@ -841,49 +927,40 @@
                 return;
             }
 
-            const version = document.getElementById('versionSelect').value;
+            const versionSelect = document.getElementById('versionSelect');
+            currentVersion = versionSelect.value || '1.21.1';
+            
             const btn = document.getElementById('playBtn');
             const bar = document.getElementById('progressBar');
             const fill = document.getElementById('progressFill');
             
             btn.disabled = true;
             bar.classList.add('active');
+            btn.textContent = 'Preparing...';
             
-            const steps = [
-                { msg: 'Authenticating...', prog: 15 },
-                { msg: 'Checking game files...', prog: 30 },
-                { msg: 'Downloading assets...', prog: 50 },
-                { msg: 'Loading libraries...', prog: 70 },
-                { msg: 'Starting JVM...', prog: 85 },
-                { msg: 'Launching Minecraft!', prog: 100 }
-            ];
-
-            for (const step of steps) {
-                btn.textContent = step.msg;
-                fill.style.width = step.prog + '%';
-                await new Promise(r => setTimeout(r, 800));
-            }
-
-            // ECHTE LAUNCH (simulatie voor nu)
-            const result = await window.electronAPI.launchMinecraft(version, authState);
-            
-            if (result.success) {
-                showToast(result.message, 'success');
-            } else {
-                showToast('Launch failed: ' + result.error, 'error');
-            }
-
-            // Voeg toe aan je script:
-window.electronAPI.onLaunchStatus((status) => {
-  document.getElementById('playBtn').textContent = status;
+            try {
+                const result = await window.electronAPI.launchMinecraft(currentVersion, authState);
+                
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    btn.textContent = 'Playing...';
+                } else {
+                    showToast('Launch failed: ' + result.error, 'error');
+                    btn.textContent = 'Start Minecraft';
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+                btn.textContent = 'Start Minecraft';
             }
             
             setTimeout(() => {
                 btn.disabled = false;
-                btn.textContent = 'Start Minecraft';
                 bar.classList.remove('active');
                 fill.style.width = '0%';
-            }, 2000);
+                if (!authState.isAuthenticated) {
+                    btn.textContent = 'Start Minecraft';
+                }
+            }, 3000);
         }
 
         // VERSIONS
@@ -895,17 +972,17 @@ window.electronAPI.onLaunchStatus((status) => {
                 select.innerHTML = data.versions
                     .filter(v => v.type === 'release')
                     .slice(0, 30)
-                    .map(v => `<option value="${v.id}">${v.id}</option>`)
+                    .map(v => `<option value="${v.id}" ${v.id === '1.21.1' ? 'selected' : ''}>${v.id}</option>`)
                     .join('');
+                currentVersion = select.value;
             } catch (e) {
                 console.error('Failed to load versions');
             }
         }
 
-        // MODS - ALLE MODS VAN MODRINTH
+        // MODS
         async function loadMods() {
             try {
-                // Haal meer mods op (50 in plaats van 6)
                 const res = await fetch('https://api.modrinth.com/v2/search?limit=50&index=follows');
                 const data = await res.json();
                 displayMods(data.hits);
@@ -925,7 +1002,7 @@ window.electronAPI.onLaunchStatus((status) => {
                 <div class="mod-card">
                     <div class="mod-header">
                         <div class="mod-icon">
-                            ${mod.icon_url ? `<img src="${mod.icon_url}" alt="">` : '📦'}
+                            ${mod.icon_url ? `<img src="${mod.icon_url}" alt="" onerror="this.parentElement.textContent='📦'">` : '📦'}
                         </div>
                         <div class="mod-info">
                             <h3>${mod.title}</h3>
@@ -1006,17 +1083,39 @@ window.electronAPI.onLaunchStatus((status) => {
             const btn = document.getElementById('uploadSkinBtn');
             btn.textContent = 'Uploading...';
             
-            const result = await window.electronAPI.uploadSkin(selectedSkin, authState.tokens.minecraft.access_token);
-            
-            if (result.success) {
-                showToast('Skin uploaded!', 'success');
-                // Update avatar
-                document.getElementById('userAvatar').innerHTML = `<img src="${result.url}" alt="skin">`;
-            } else {
-                showToast('Upload failed: ' + result.error, 'error');
+            try {
+                const result = await window.electronAPI.uploadSkin(selectedSkin, authState.tokens.minecraft.access_token);
+                
+                if (result.success) {
+                    showToast('Skin uploaded!', 'success');
+                    document.getElementById('userAvatar').innerHTML = `<img src="${selectedSkin}" alt="skin">`;
+                    addSkinToList(selectedSkin);
+                } else {
+                    showToast('Upload failed: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showToast('Upload error: ' + error.message, 'error');
             }
             
             btn.textContent = 'Upload Skin';
+        }
+
+        function addSkinToList(skinUrl) {
+            const list = document.getElementById('skinsList');
+            if (list.children.length === 1 && list.children[0].textContent.includes('No skins')) {
+                list.innerHTML = '';
+            }
+            
+            const div = document.createElement('div');
+            div.className = 'skin-item';
+            div.innerHTML = `<img src="${skinUrl}" alt="Skin">`;
+            div.onclick = () => {
+                document.getElementById('skinPreview').innerHTML = `<img src="${skinUrl}" alt="Skin Preview">`;
+                document.getElementById('skinPreview').classList.add('has-image');
+                selectedSkin = skinUrl;
+                document.getElementById('uploadSkinBtn').disabled = false;
+            };
+            list.appendChild(div);
         }
 
         function resetSkin() {
@@ -1032,8 +1131,8 @@ window.electronAPI.onLaunchStatus((status) => {
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = `toast ${type === 'error' ? 'error' : ''}`;
-            toast.innerHTML = `<span>${type === 'error' ? '✕' : '✓'}</span><span>${message}</span>`;
+            toast.className = `toast ${type === 'error' ? 'error' : ''} ${type === 'warning' ? 'warning' : ''}`;
+            toast.innerHTML = `<span>${type === 'error' ? '✕' : type === 'warning' ? '!' : '✓'}</span><span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         }
