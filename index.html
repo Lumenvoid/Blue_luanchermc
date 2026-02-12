@@ -683,39 +683,69 @@
         }
 
         async function startAuth() {
-            document.getElementById('authModal').classList.add('hidden');
-            document.getElementById('deviceModal').classList.remove('hidden');
-            document.getElementById('authStatus').innerHTML = '<div class="loading-spinner"></div> Connecting to Microsoft...';
-            
-            try {
-                const result = await window.electronAPI.startMicrosoftAuth();
-                
-                if (result.success) {
-                    // SLUIT MODAL EERST
-                    document.getElementById('deviceModal').classList.add('hidden');
-                    
-                    authState.isAuthenticated = true;
-                    authState.user = result.user;
-                    authState.tokens = result.tokens;
-                    
-                    localStorage.setItem('blue_launcher_auth', JSON.stringify({
-                        user: result.user,
-                        tokens: result.tokens,
-                        timestamp: Date.now()
-                    }));
-                    
-                    updateUI();
-                    showToast(`Welcome, ${result.user.name}!`, 'success');
-                } else {
-                    document.getElementById('authStatus').innerHTML = `<span style="color: var(--error)">Error: ${result.error}</span>`;
-                    showToast('Auth failed: ' + result.error, 'error');
-                }
-            } catch (error) {
-                console.error('Auth error:', error);
-                document.getElementById('authStatus').innerHTML = `<span style="color: var(--error)">Error: ${error.message}</span>`;
-                showToast('Auth error: ' + error.message, 'error');
-            }
-        }
+  document.getElementById('authModal').classList.add('hidden');
+  document.getElementById('deviceModal').classList.remove('hidden');
+  document.getElementById('authStatus').innerHTML = '<div class="loading-spinner"></div> Connecting...';
+  
+  try {
+    const result = await window.electronAPI.startMicrosoftAuth();
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+
+    // Show code
+    document.getElementById('deviceCode').textContent = result.userCode;
+    navigator.clipboard.writeText(result.userCode);
+    
+    // Poll for completion
+    let attempts = 0;
+    const maxAttempts = 60;
+    
+    const poll = async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        throw new Error('Timeout');
+      }
+      
+      document.getElementById('authStatus').textContent = 'Waiting for you to sign in... (' + attempts + '/' + maxAttempts + ')';
+      
+      const tokenResult = await window.electronAPI.pollForToken(result.deviceCode, result.interval);
+      
+      if (tokenResult.pending) {
+        setTimeout(poll, (result.interval || 5) * 1000);
+        return;
+      }
+      
+      if (!tokenResult.success) {
+        throw new Error(tokenResult.error);
+      }
+      
+      // Success!
+      document.getElementById('deviceModal').classList.add('hidden');
+      
+      authState.isAuthenticated = true;
+      authState.user = tokenResult.user;
+      authState.tokens = tokenResult.tokens;
+      
+      localStorage.setItem('blue_launcher_auth', JSON.stringify({
+        user: tokenResult.user,
+        tokens: tokenResult.tokens,
+        timestamp: Date.now()
+      }));
+      
+      updateUI();
+      showToast(`Welcome, ${tokenResult.user.name}!`, 'success');
+    };
+    
+    poll();
+    
+  } catch (error) {
+    console.error('Auth error:', error);
+    document.getElementById('authStatus').innerHTML = `<span style="color: var(--error)">${error.message}</span>`;
+    showToast('Auth failed: ' + error.message, 'error');
+  }
+}
 
         function openMicrosoftLink() {
             window.electronAPI.openExternal('https://microsoft.com/link');
