@@ -5,43 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blue Launcher</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-tertiary: #252525;
-            --bg-hover: #333;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #151515;
+            --bg-tertiary: #1f1f1f;
+            --bg-hover: #2a2a2a;
             --accent-blue: #0078d4;
-            --accent-blue-hover: #106ebe;
             --accent-green: #107c10;
-            --accent-green-hover: #16a616;
             --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
+            --text-secondary: #9a9a9a;
             --border-color: #2d2d2d;
-            --error: #d83b01;
-            --success: #107c10;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
         }
 
-        .launcher {
-            display: flex;
-            height: 100vh;
-        }
+        .launcher { display: flex; height: 100vh; }
 
         .sidebar {
-            width: 280px;
+            width: 300px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -50,12 +39,12 @@
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             background: linear-gradient(135deg, #00a4ef, #0078d4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
+            margin-bottom: 16px;
         }
 
         .version-select {
@@ -63,22 +52,21 @@
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 10px 14px;
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 24px;
             cursor: pointer;
-            outline: none;
         }
 
         .nav-btn {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 14px 18px;
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
             border-radius: 8px;
             margin-bottom: 4px;
@@ -90,9 +78,7 @@
             color: var(--text-primary);
         }
 
-        .nav-btn.active {
-            background: var(--accent-blue);
-        }
+        .nav-btn.active { background: var(--accent-blue); color: white; }
 
         .user-section {
             margin-top: auto;
@@ -103,62 +89,54 @@
         .user-card {
             background: var(--bg-tertiary);
             border-radius: 12px;
-            padding: 16px;
+            padding: 20px;
             text-align: center;
         }
 
         .avatar {
-            width: 64px;
-            height: 64px;
+            width: 80px;
+            height: 80px;
             background: var(--bg-hover);
             border-radius: 50%;
             margin: 0 auto 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            border: 2px solid var(--border-color);
+            font-size: 32px;
+            border: 3px solid var(--border-color);
             overflow: hidden;
+            position: relative;
         }
 
         .avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        .avatar.online {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.3);
         }
 
         .username {
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 18px;
             margin-bottom: 4px;
         }
 
-        .user-status {
+        .user-email {
             font-size: 12px;
             color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--text-secondary);
-        }
-
-        .status-dot.online {
-            background: var(--success);
-            box-shadow: 0 0 8px var(--success);
+            margin-bottom: 12px;
         }
 
         .login-btn, .logout-btn {
             width: 100%;
-            margin-top: 12px;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
@@ -169,9 +147,7 @@
             color: white;
         }
 
-        .login-btn:hover {
-            background: var(--accent-blue-hover);
-        }
+        .login-btn:hover { background: #106ebe; }
 
         .logout-btn {
             background: transparent;
@@ -180,72 +156,57 @@
         }
 
         .logout-btn:hover {
-            background: var(--error);
+            background: #d83b01;
             color: white;
-            border-color: var(--error);
+            border-color: #d83b01;
         }
 
         .content {
             flex: 1;
-            padding: 32px;
+            padding: 40px;
             overflow-y: auto;
         }
 
-        .section {
-            display: none;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .section.active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.3s; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h1 {
-            font-size: 32px;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-        }
+        h1 { font-size: 36px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 32px; font-size: 16px; }
 
         .play-card {
             background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 48px;
+            border-radius: 20px;
+            padding: 60px;
             text-align: center;
             border: 1px solid var(--border-color);
         }
 
         .play-icon {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, var(--accent-green), #0e5c0e);
-            border-radius: 24px;
-            margin: 0 auto 32px;
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, var(--accent-green), #0a5c0a);
+            border-radius: 28px;
+            margin: 0 auto 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 64px;
+            font-size: 72px;
+            box-shadow: 0 20px 40px rgba(16, 124, 16, 0.2);
         }
 
         .play-btn {
             background: var(--accent-green);
             color: white;
             border: none;
-            padding: 20px 48px;
-            font-size: 18px;
+            padding: 24px 56px;
+            font-size: 20px;
             font-weight: 700;
-            border-radius: 12px;
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s;
             width: 100%;
@@ -253,8 +214,9 @@
         }
 
         .play-btn:hover:not(:disabled) {
-            background: var(--accent-green-hover);
+            background: #16a616;
             transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 124, 16, 0.3);
         }
 
         .play-btn:disabled {
@@ -265,18 +227,15 @@
         .progress-bar {
             width: 100%;
             max-width: 400px;
-            height: 4px;
+            height: 6px;
             background: var(--bg-tertiary);
-            border-radius: 2px;
-            margin: 20px auto 0;
+            border-radius: 3px;
+            margin: 24px auto 0;
             overflow: hidden;
             display: none;
         }
 
-        .progress-bar.active {
-            display: block;
-        }
-
+        .progress-bar.active { display: block; }
         .progress-fill {
             height: 100%;
             background: var(--accent-green);
@@ -284,6 +243,7 @@
             transition: width 0.3s;
         }
 
+        /* Mods */
         .search-box {
             display: flex;
             gap: 12px;
@@ -295,83 +255,101 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 12px 16px;
-            border-radius: 8px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 15px;
             outline: none;
         }
 
-        .search-input:focus {
-            border-color: var(--accent-blue);
-        }
+        .search-input:focus { border-color: var(--accent-blue); }
 
         .search-btn {
             background: var(--accent-blue);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 14px 28px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
         }
 
         .mods-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
         }
 
         .mod-card {
             background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 24px;
             border: 1px solid var(--border-color);
             transition: all 0.2s;
         }
 
         .mod-card:hover {
             border-color: var(--accent-blue);
-            transform: translateY(-2px);
+            transform: translateY(-4px);
         }
 
         .mod-header {
             display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
         .mod-icon {
-            width: 48px;
-            height: 48px;
+            width: 56px;
+            height: 56px;
             background: var(--bg-tertiary);
-            border-radius: 8px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
+            overflow: hidden;
         }
 
-        .mod-title {
-            font-weight: 600;
+        .mod-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mod-info h3 {
+            font-size: 18px;
             margin-bottom: 4px;
         }
 
         .mod-author {
-            font-size: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .mod-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 13px;
             color: var(--text-secondary);
         }
 
         .mod-desc {
             font-size: 14px;
             color: var(--text-secondary);
+            line-height: 1.6;
             margin-bottom: 16px;
-            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .mod-btn {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
@@ -382,21 +360,99 @@
             color: white;
         }
 
-        .mod-btn.install:hover {
-            background: var(--accent-blue-hover);
-        }
-
+        .mod-btn.install:hover { background: var(--accent-blue-hover); }
         .mod-btn.installed {
-            background: var(--success);
+            background: var(--accent-green);
             cursor: default;
         }
 
+        /* Skins */
+        .skins-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+        }
+
+        .skin-preview-box {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .skin-preview {
+            width: 200px;
+            height: 200px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skin-preview.has-image {
+            border-style: solid;
+            border-color: var(--accent-green);
+        }
+
+        .skin-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-tertiary);
+        }
+
+        .upload-area input { display: none; }
+
+        .skin-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .skin-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .skin-btn.primary {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .skin-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Modals */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.9);
             display: flex;
             align-items: center;
@@ -405,52 +461,36 @@
             backdrop-filter: blur(10px);
         }
 
-        .modal-overlay.hidden {
-            display: none;
-        }
+        .modal-overlay.hidden { display: none; }
 
         .modal {
             background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 32px;
+            border-radius: 20px;
+            padding: 40px;
             width: 90%;
-            max-width: 500px;
+            max-width: 480px;
             border: 1px solid var(--border-color);
             text-align: center;
         }
 
-        .modal h2 {
-            margin-bottom: 16px;
-            font-size: 24px;
-        }
-
-        .modal p {
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.6;
-        }
+        .modal h2 { font-size: 28px; margin-bottom: 16px; }
+        .modal p { color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
 
         .code-box {
             background: var(--bg-tertiary);
             border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            margin: 20px 0;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
         }
 
         .code-display {
             font-family: 'Courier New', monospace;
-            font-size: 32px;
+            font-size: 36px;
             font-weight: bold;
             letter-spacing: 8px;
             color: var(--accent-blue);
             margin-bottom: 12px;
-            user-select: all;
-        }
-
-        .code-instruction {
-            font-size: 14px;
-            color: var(--text-secondary);
         }
 
         .ms-btn {
@@ -458,8 +498,8 @@
             background: #00a4ef;
             color: white;
             border: none;
-            padding: 16px;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -467,26 +507,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: all 0.2s;
             margin-bottom: 12px;
-        }
-
-        .ms-btn:hover {
-            background: #0092d4;
-            transform: translateY(-1px);
-        }
-
-        .ms-icon {
-            width: 20px;
-            height: 20px;
-            background: white;
-            color: #00a4ef;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 12px;
         }
 
         .secondary-btn {
@@ -494,31 +515,12 @@
             background: transparent;
             color: var(--text-secondary);
             border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
         }
 
-        .secondary-btn:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        /* Toast */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -530,26 +532,31 @@
             background: var(--bg-secondary);
             color: white;
             padding: 16px 24px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-top: 8px;
-            border: 1px solid var(--border-color);
             border-left: 4px solid var(--success);
-            display: flex;
-            align-items: center;
-            gap: 12px;
             animation: slideIn 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
 
-        .toast.error {
-            border-left-color: var(--error);
-        }
+        .toast.error { border-left-color: var(--error); }
 
         @keyframes slideIn {
             from { transform: translateX(400px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -558,29 +565,27 @@
             <div class="logo">Blue Launcher</div>
             
             <select class="version-select" id="versionSelect">
-                <option>Loading versions...</option>
+                <option>Loading...</option>
             </select>
 
             <nav>
-                <button class="nav-btn active" onclick="switchTab('play')">▶ Play</button>
-                <button class="nav-btn" onclick="switchTab('mods')">📦 Mods</button>
-                <button class="nav-btn" onclick="switchTab('skins')">👤 Skins</button>
+                <button class="nav-btn active" onclick="switchTab('play', this)">▶ Play</button>
+                <button class="nav-btn" onclick="switchTab('mods', this)">📦 Mods</button>
+                <button class="nav-btn" onclick="switchTab('skins', this)">👤 Skins</button>
             </nav>
 
             <div class="user-section">
-                <div class="user-card" id="userCard">
+                <div class="user-card">
                     <div class="avatar" id="userAvatar">?</div>
-                    <div class="username" id="username">Not logged in</div>
-                    <div class="user-status">
-                        <span class="status-dot" id="statusDot"></span>
-                        <span id="statusText">Offline</span>
-                    </div>
-                    <button class="login-btn" id="authBtn" onclick="handleAuthClick()">Sign in with Microsoft</button>
+                    <div class="username" id="username">Guest</div>
+                    <div class="user-email" id="userEmail">Not logged in</div>
+                    <button class="login-btn" id="authBtn" onclick="handleAuth()">Sign in with Microsoft</button>
                 </div>
             </div>
         </aside>
 
         <main class="content">
+            <!-- Play -->
             <section id="play" class="section active">
                 <h1>Ready to Play</h1>
                 <p class="subtitle">Launch Minecraft and start your adventure</p>
@@ -594,79 +599,111 @@
                 </div>
             </section>
 
+            <!-- Mods -->
             <section id="mods" class="section">
                 <h1>Mod Browser</h1>
-                <p class="subtitle">Discover mods from Modrinth</p>
+                <p class="subtitle">Discover and install mods from Modrinth</p>
                 
                 <div class="search-box">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search mods..." onkeypress="if(event.key==='Enter')searchMods()">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search for mods..." onkeypress="if(event.key==='Enter')searchMods()">
                     <button class="search-btn" onclick="searchMods()">Search</button>
                 </div>
                 
-                <div class="mods-grid" id="modsGrid"></div>
+                <div class="mods-grid" id="modsGrid">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div class="loading-spinner"></div> Loading mods...
+                    </div>
+                </div>
             </section>
 
+            <!-- Skins -->
             <section id="skins" class="section">
                 <h1>Skin Manager</h1>
-                <p class="subtitle">Change your appearance</p>
-                <p style="color: var(--text-secondary);">Feature coming soon...</p>
+                <p class="subtitle">Upload and manage your Minecraft skins</p>
+                
+                <div class="skins-container">
+                    <div class="skin-preview-box">
+                        <div class="skin-preview" id="skinPreview">
+                            <span style="font-size: 48px;">👤</span>
+                        </div>
+                        <div class="upload-area" onclick="document.getElementById('skinFile').click()">
+                            <input type="file" id="skinFile" accept="image/png" onchange="handleSkinSelect(event)">
+                            <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+                            <div>Click to upload skin</div>
+                            <small style="color: var(--text-secondary);">64x64 or 64x32 PNG</small>
+                        </div>
+                        <div class="skin-actions">
+                            <button class="skin-btn primary" id="uploadSkinBtn" onclick="uploadSkin()" disabled>Upload Skin</button>
+                            <button class="skin-btn secondary" onclick="resetSkin()">Reset</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 16px;">Your Skins</h3>
+                        <div id="skinsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px;">
+                            <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; text-align: center; color: var(--text-secondary);">
+                                No skins yet
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
 
+    <!-- Auth Modal -->
     <div class="modal-overlay hidden" id="authModal">
         <div class="modal">
             <h2>Sign in with Microsoft</h2>
-            <p>Click the button below to start authentication.</p>
-            <button class="ms-btn" onclick="startAuth()">
-                <span class="ms-icon">M</span>
-                Continue with Microsoft
+            <p>Connect your Microsoft account to play Minecraft</p>
+            <button class="ms-btn" onclick="startMicrosoftAuth()">
+                <span style="font-size: 20px;">M</span> Continue with Microsoft
             </button>
             <button class="secondary-btn" onclick="closeAuth()">Cancel</button>
         </div>
     </div>
 
+    <!-- Device Code Modal -->
     <div class="modal-overlay hidden" id="deviceModal">
         <div class="modal">
             <h2>Enter Device Code</h2>
             <p>Go to <strong>microsoft.com/link</strong> and enter:</p>
             <div class="code-box">
                 <div class="code-display" id="deviceCode">----</div>
-                <div class="code-instruction">Code copied! Expires in <span id="codeTimer">15:00</span></div>
+                <div style="color: var(--text-secondary); font-size: 14px;">Code copied to clipboard!</div>
             </div>
-            <button class="ms-btn" onclick="openMicrosoftLink()">
-                Open microsoft.com/link
+            <button class="ms-btn" onclick="window.electronAPI.openExternal('https://microsoft.com/link')">
+                Open Browser
             </button>
-            <div id="authStatus" style="margin-top: 16px; color: var(--text-secondary);">
-                Waiting for you to sign in...
+            <div id="authStatus" style="margin: 16px 0; color: var(--text-secondary);">
+                Waiting for sign in...
             </div>
-            <button class="secondary-btn" onclick="cancelAuth()" style="margin-top: 12px;">Cancel</button>
+            <button class="secondary-btn" onclick="cancelAuth()">Cancel</button>
         </div>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        let authState = {
-            isAuthenticated: false,
-            user: null,
-            tokens: null
-        };
+        let authState = { isAuthenticated: false, user: null, tokens: null };
+        let selectedSkin = null;
 
+        // Init
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             loadVersions();
-            checkStoredAuth();
             loadMods();
         });
 
-        function switchTab(tab) {
+        function switchTab(tab, btn) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
+            if(btn) btn.classList.add('active');
         }
 
-        function handleAuthClick() {
+        // AUTH
+        function handleAuth() {
             if (authState.isAuthenticated) {
                 logout();
             } else {
@@ -682,120 +719,108 @@
             document.getElementById('deviceModal').classList.add('hidden');
         }
 
-        async function startAuth() {
-  document.getElementById('authModal').classList.add('hidden');
-  document.getElementById('deviceModal').classList.remove('hidden');
-  document.getElementById('authStatus').innerHTML = '<div class="loading-spinner"></div> Connecting...';
-  
-  try {
-    const result = await window.electronAPI.startMicrosoftAuth();
-    
-    if (!result.success) {
-      throw new Error(result.error);
-    }
+        async function startMicrosoftAuth() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('deviceModal').classList.remove('hidden');
+            document.getElementById('authStatus').innerHTML = '<div class="loading-spinner"></div> Connecting...';
+            
+            const result = await window.electronAPI.startMicrosoftAuth();
+            
+            if (!result.success) {
+                showToast('Auth failed: ' + result.error, 'error');
+                return;
+            }
 
-    // Show code
-    document.getElementById('deviceCode').textContent = result.userCode;
-    navigator.clipboard.writeText(result.userCode);
-    
-    // Poll for completion
-    let attempts = 0;
-    const maxAttempts = 60;
-    
-    const poll = async () => {
-      attempts++;
-      if (attempts > maxAttempts) {
-        throw new Error('Timeout');
-      }
-      
-      document.getElementById('authStatus').textContent = 'Waiting for you to sign in... (' + attempts + '/' + maxAttempts + ')';
-      
-      const tokenResult = await window.electronAPI.pollForToken(result.deviceCode, result.interval);
-      
-      if (tokenResult.pending) {
-        setTimeout(poll, (result.interval || 5) * 1000);
-        return;
-      }
-      
-      if (!tokenResult.success) {
-        throw new Error(tokenResult.error);
-      }
-      
-      // Success!
-      document.getElementById('deviceModal').classList.add('hidden');
-      
-      authState.isAuthenticated = true;
-      authState.user = tokenResult.user;
-      authState.tokens = tokenResult.tokens;
-      
-      localStorage.setItem('blue_launcher_auth', JSON.stringify({
-        user: tokenResult.user,
-        tokens: tokenResult.tokens,
-        timestamp: Date.now()
-      }));
-      
-      updateUI();
-      showToast(`Welcome, ${tokenResult.user.name}!`, 'success');
-    };
-    
-    poll();
-    
-  } catch (error) {
-    console.error('Auth error:', error);
-    document.getElementById('authStatus').innerHTML = `<span style="color: var(--error)">${error.message}</span>`;
-    showToast('Auth failed: ' + error.message, 'error');
-  }
-}
-
-        function openMicrosoftLink() {
-            window.electronAPI.openExternal('https://microsoft.com/link');
+            document.getElementById('deviceCode').textContent = result.userCode;
+            navigator.clipboard.writeText(result.userCode);
+            
+            // Poll
+            let attempts = 0;
+            const poll = async () => {
+                attempts++;
+                if (attempts > 60) {
+                    showToast('Timeout', 'error');
+                    return;
+                }
+                
+                document.getElementById('authStatus').textContent = `Waiting... (${attempts}/60)`;
+                
+                const tokenResult = await window.electronAPI.pollForToken(result.deviceCode, result.interval);
+                
+                if (tokenResult.pending) {
+                    setTimeout(poll, (result.interval || 5) * 1000);
+                    return;
+                }
+                
+                if (!tokenResult.success) {
+                    showToast(tokenResult.error, 'error');
+                    return;
+                }
+                
+                // SUCCESS - Update alles
+                authState = {
+                    isAuthenticated: true,
+                    user: tokenResult.user,
+                    tokens: tokenResult.tokens
+                };
+                
+                localStorage.setItem('blue_launcher_auth', JSON.stringify({
+                    user: tokenResult.user,
+                    tokens: tokenResult.tokens,
+                    timestamp: Date.now()
+                }));
+                
+                updateUserUI();
+                document.getElementById('deviceModal').classList.add('hidden');
+                showToast(`Welcome, ${tokenResult.user.name}!`, 'success');
+            };
+            
+            poll();
         }
 
-        function checkStoredAuth() {
+        function checkAuth() {
             const stored = localStorage.getItem('blue_launcher_auth');
             if (stored) {
                 try {
                     const data = JSON.parse(stored);
                     if (Date.now() - data.timestamp < 86400000) {
-                        authState.isAuthenticated = true;
-                        authState.user = data.user;
-                        authState.tokens = data.tokens;
-                        updateUI();
-                    } else {
-                        localStorage.removeItem('blue_launcher_auth');
+                        authState = { isAuthenticated: true, user: data.user, tokens: data.tokens };
+                        updateUserUI();
                     }
-                } catch (e) {
-                    console.error('Failed to parse auth data');
-                }
+                } catch (e) {}
             }
         }
 
-        function updateUI() {
+        function updateUserUI() {
             const avatar = document.getElementById('userAvatar');
             const username = document.getElementById('username');
-            const statusDot = document.getElementById('statusDot');
-            const statusText = document.getElementById('statusText');
+            const email = document.getElementById('userEmail');
             const btn = document.getElementById('authBtn');
 
-            if (authState.isAuthenticated && authState.user) {
-                avatar.textContent = authState.user.name[0].toUpperCase();
+            if (authState.isAuthenticated) {
+                // Avatar
+                if (authState.user.skins?.length > 0) {
+                    const skin = authState.user.skins.find(s => s.state === 'ACTIVE') || authState.user.skins[0];
+                    avatar.innerHTML = `<img src="${skin.url}" alt="skin">`;
+                } else {
+                    avatar.textContent = authState.user.name[0].toUpperCase();
+                }
+                avatar.classList.add('online');
+                
+                // Text
                 username.textContent = authState.user.name;
-                statusDot.classList.add('online');
-                statusText.textContent = 'Online';
+                email.textContent = 'Logged in';
+                email.style.color = '#107c10';
+                
+                // Button
                 btn.textContent = 'Logout';
                 btn.className = 'logout-btn';
-
-                if (authState.user.skins && authState.user.skins.length > 0) {
-                    const activeSkin = authState.user.skins.find(s => s.state === 'ACTIVE') || authState.user.skins[0];
-                    if (activeSkin && activeSkin.url) {
-                        avatar.innerHTML = `<img src="${activeSkin.url}" alt="Skin">`;
-                    }
-                }
             } else {
                 avatar.textContent = '?';
-                username.textContent = 'Not logged in';
-                statusDot.classList.remove('online');
-                statusText.textContent = 'Offline';
+                avatar.classList.remove('online');
+                username.textContent = 'Guest';
+                email.textContent = 'Not logged in';
+                email.style.color = '';
                 btn.textContent = 'Sign in with Microsoft';
                 btn.className = 'login-btn';
             }
@@ -804,17 +829,19 @@
         function logout() {
             localStorage.removeItem('blue_launcher_auth');
             authState = { isAuthenticated: false, user: null, tokens: null };
-            updateUI();
-            showToast('Logged out successfully', 'success');
+            updateUserUI();
+            showToast('Logged out', 'success');
         }
 
+        // MINECRAFT LAUNCH
         async function launchGame() {
             if (!authState.isAuthenticated) {
                 showToast('Please sign in first!', 'error');
-                handleAuthClick();
+                handleAuth();
                 return;
             }
 
+            const version = document.getElementById('versionSelect').value;
             const btn = document.getElementById('playBtn');
             const bar = document.getElementById('progressBar');
             const fill = document.getElementById('progressFill');
@@ -823,20 +850,28 @@
             bar.classList.add('active');
             
             const steps = [
-                { msg: 'Checking auth...', prog: 20 },
-                { msg: 'Preparing launch...', prog: 40 },
-                { msg: 'Loading files...', prog: 60 },
-                { msg: 'Starting JVM...', prog: 80 },
-                { msg: 'Launching!', prog: 100 }
+                { msg: 'Authenticating...', prog: 15 },
+                { msg: 'Checking game files...', prog: 30 },
+                { msg: 'Downloading assets...', prog: 50 },
+                { msg: 'Loading libraries...', prog: 70 },
+                { msg: 'Starting JVM...', prog: 85 },
+                { msg: 'Launching Minecraft!', prog: 100 }
             ];
 
             for (const step of steps) {
                 btn.textContent = step.msg;
                 fill.style.width = step.prog + '%';
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 800));
             }
 
-            showToast('Minecraft launched!', 'success');
+            // ECHTE LAUNCH (simulatie voor nu)
+            const result = await window.electronAPI.launchMinecraft(version, authState);
+            
+            if (result.success) {
+                showToast(result.message, 'success');
+            } else {
+                showToast('Launch failed: ' + result.error, 'error');
+            }
             
             setTimeout(() => {
                 btn.disabled = false;
@@ -846,6 +881,7 @@
             }, 2000);
         }
 
+        // VERSIONS
         async function loadVersions() {
             try {
                 const res = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json');
@@ -853,7 +889,7 @@
                 const select = document.getElementById('versionSelect');
                 select.innerHTML = data.versions
                     .filter(v => v.type === 'release')
-                    .slice(0, 20)
+                    .slice(0, 30)
                     .map(v => `<option value="${v.id}">${v.id}</option>`)
                     .join('');
             } catch (e) {
@@ -861,39 +897,57 @@
             }
         }
 
+        // MODS - ALLE MODS VAN MODRINTH
         async function loadMods() {
             try {
-                const res = await fetch('https://api.modrinth.com/v2/search?limit=6&index=follows');
+                // Haal meer mods op (50 in plaats van 6)
+                const res = await fetch('https://api.modrinth.com/v2/search?limit=50&index=follows');
                 const data = await res.json();
                 displayMods(data.hits);
             } catch (e) {
-                console.error('Failed to load mods');
+                document.getElementById('modsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">Failed to load mods</div>';
             }
         }
 
         function displayMods(mods) {
             const grid = document.getElementById('modsGrid');
+            if (!mods || mods.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">No mods found</div>';
+                return;
+            }
+            
             grid.innerHTML = mods.map(mod => `
                 <div class="mod-card">
                     <div class="mod-header">
-                        <div class="mod-icon">📦</div>
-                        <div>
-                            <div class="mod-title">${mod.title}</div>
+                        <div class="mod-icon">
+                            ${mod.icon_url ? `<img src="${mod.icon_url}" alt="">` : '📦'}
+                        </div>
+                        <div class="mod-info">
+                            <h3>${mod.title}</h3>
                             <div class="mod-author">by ${mod.author}</div>
+                            <div class="mod-stats">
+                                <span>⬇ ${formatNumber(mod.downloads)}</span>
+                                <span>❤ ${formatNumber(mod.follows)}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="mod-desc">${mod.description}</div>
-                    <button class="mod-btn install" onclick="installMod('${mod.project_id}', this)">Install</button>
+                    <button class="mod-btn install" onclick="installMod(this)">Install</button>
                 </div>
             `).join('');
         }
 
         async function searchMods() {
             const query = document.getElementById('searchInput').value;
-            if (!query) return;
+            if (!query) {
+                loadMods();
+                return;
+            }
+            
+            document.getElementById('modsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><div class="loading-spinner"></div></div>';
             
             try {
-                const res = await fetch(`https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=6`);
+                const res = await fetch(`https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=50`);
                 const data = await res.json();
                 displayMods(data.hits);
             } catch (e) {
@@ -901,7 +955,7 @@
             }
         }
 
-        function installMod(id, btn) {
+        function installMod(btn) {
             btn.textContent = 'Installing...';
             setTimeout(() => {
                 btn.textContent = 'Installed';
@@ -911,14 +965,70 @@
             }, 1500);
         }
 
+        function formatNumber(num) {
+            if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num/1000).toFixed(1) + 'k';
+            return num;
+        }
+
+        // SKINS
+        function handleSkinSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.includes('png')) {
+                showToast('Please select a PNG file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                selectedSkin = e.target.result;
+                const preview = document.getElementById('skinPreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="Skin Preview">`;
+                preview.classList.add('has-image');
+                document.getElementById('uploadSkinBtn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadSkin() {
+            if (!selectedSkin || !authState.isAuthenticated) {
+                showToast('Please login and select a skin first', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('uploadSkinBtn');
+            btn.textContent = 'Uploading...';
+            
+            const result = await window.electronAPI.uploadSkin(selectedSkin, authState.tokens.minecraft.access_token);
+            
+            if (result.success) {
+                showToast('Skin uploaded!', 'success');
+                // Update avatar
+                document.getElementById('userAvatar').innerHTML = `<img src="${result.url}" alt="skin">`;
+            } else {
+                showToast('Upload failed: ' + result.error, 'error');
+            }
+            
+            btn.textContent = 'Upload Skin';
+        }
+
+        function resetSkin() {
+            selectedSkin = null;
+            document.getElementById('skinFile').value = '';
+            const preview = document.getElementById('skinPreview');
+            preview.innerHTML = '<span style="font-size: 48px;">👤</span>';
+            preview.classList.remove('has-image');
+            document.getElementById('uploadSkinBtn').disabled = true;
+        }
+
+        // TOAST
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type === 'error' ? 'error' : ''}`;
-            toast.innerHTML = `
-                <span>${type === 'error' ? '✕' : '✓'}</span>
-                <span>${message}</span>
-            `;
+            toast.innerHTML = `<span>${type === 'error' ? '✕' : '✓'}</span><span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         }
