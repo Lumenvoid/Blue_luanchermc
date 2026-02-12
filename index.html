@@ -872,6 +872,11 @@
             } else {
                 showToast('Launch failed: ' + result.error, 'error');
             }
+
+            // Voeg toe aan je script:
+window.electronAPI.onLaunchStatus((status) => {
+  document.getElementById('playBtn').textContent = status;
+            }
             
             setTimeout(() => {
                 btn.disabled = false;
