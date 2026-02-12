@@ -8,7 +8,7 @@ const os = require('os');
 const crypto = require('crypto');
 
 let mainWindow;
-const CLIENT_ID = 'JOUW_CLIENT_ID_HIER';
+const CLIENT_ID = 'f457da6e-1e63-45dd-81c6-2f9370d484e3';
 
 const MINECRAFT_DIR = path.join(os.homedir(), 'AppData', 'Roaming', '.blue-minecraft');
 const LIBRARIES_DIR = path.join(MINECRAFT_DIR, 'libraries');
