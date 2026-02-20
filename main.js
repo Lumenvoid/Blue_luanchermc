@@ -1,21 +1,22 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const https = require('https');
-const { spawn, exec } = require('child_process');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
-const crypto = require('crypto');
 
 let mainWindow;
 const CLIENT_ID = 'f457da6e-1e63-45dd-81c6-2f9370d484e3';
 
 const MINECRAFT_DIR = path.join(os.homedir(), 'AppData', 'Roaming', '.blue-minecraft');
-const RUNTIME_DIR = path.join(MINECRAFT_DIR, 'runtime');
-const JAVA_DIR = path.join(RUNTIME_DIR, 'java-17');
-const JAVA_BIN = path.join(JAVA_DIR, 'bin', 'java.exe');
 const LIBRARIES_DIR = path.join(MINECRAFT_DIR, 'libraries');
 const VERSIONS_DIR = path.join(MINECRAFT_DIR, 'versions');
 const ASSETS_DIR = path.join(MINECRAFT_DIR, 'assets');
+
+// JAVA PAD - meegeleverd in de build
+const JAVA_BIN = app.isPackaged 
+  ? path.join(process.resourcesPath, 'java', 'jdk-17', 'bin', 'java.exe')
+  : path.join(__dirname, 'java', 'jdk-17', 'bin', 'java.exe');
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -46,7 +47,6 @@ function makeRequest(options, postData = null) {
   });
 }
 
-// Download file with progress
 function downloadFile(url, dest, onProgress) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
@@ -81,148 +81,17 @@ function downloadFile(url, dest, onProgress) {
   });
 }
 
-// Extract ZIP using PowerShell
-async function extractZip(zipPath, destPath) {
-  return new Promise((resolve, reject) => {
-    // PowerShell Expand-Archive
-    const cmd = `powershell -command "Expand-Archive -Path '${zipPath}' -DestinationPath '${destPath}' -Force"`;
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-// Download and setup Java
-async function setupJava() {
+// Check of meegeleverde Java bestaat
+function checkBundledJava() {
+  console.log('Looking for Java at:', JAVA_BIN);
   if (fs.existsSync(JAVA_BIN)) {
-    console.log('Java already exists at:', JAVA_BIN);
-    return JAVA_BIN;
+    console.log('Found bundled Java!');
+    return true;
   }
-
-  mainWindow.webContents.send('launch-status', 'Downloading Java 17... (first time only)');
-  
-  const javaZip = path.join(RUNTIME_DIR, 'java17.zip');
-  
-  // Zorg dat runtime dir bestaat
-  if (!fs.existsSync(RUNTIME_DIR)) {
-    fs.mkdirSync(RUNTIME_DIR, { recursive: true });
-  }
-
-  try {
-    // Download Eclipse Temurin JDK 17 (volledige versie met alles)
-    const javaUrl = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9.1/OpenJDK17U-jdk_x64_windows_hotspot_17.0.9_9.zip';
-    
-    console.log('Downloading Java from:', javaUrl);
-    
-    await downloadFile(javaUrl, javaZip, (percent) => {
-      mainWindow.webContents.send('launch-status', `Downloading Java... ${percent}%`);
-    });
-
-    mainWindow.webContents.send('launch-status', 'Extracting Java...');
-    
-    // Extract naar runtime dir
-    await extractZip(javaZip, RUNTIME_DIR);
-    
-    // Zoek de java folder (kan jdk-17.0.9+9 of vergelijkbaar zijn)
-    const extractedItems = fs.readdirSync(RUNTIME_DIR);
-    console.log('Extracted items:', extractedItems);
-    
-    // Zoek naar folder die begint met jdk- of jre-
-    let jdkFolder = extractedItems.find(item => {
-      const fullPath = path.join(RUNTIME_DIR, item);
-      return fs.statSync(fullPath).isDirectory() && (item.startsWith('jdk-') || item.startsWith('jre-'));
-    });
-    
-    if (!jdkFolder) {
-      // Check subdirectories
-      for (const item of extractedItems) {
-        const itemPath = path.join(RUNTIME_DIR, item);
-        if (fs.statSync(itemPath).isDirectory()) {
-          const subItems = fs.readdirSync(itemPath);
-          const subJdk = subItems.find(sub => sub.startsWith('jdk-') || sub.startsWith('jre-'));
-          if (subJdk) {
-            jdkFolder = path.join(item, subJdk);
-            break;
-          }
-        }
-      }
-    }
-    
-    if (!jdkFolder) {
-      throw new Error('Could not find JDK folder. Extracted: ' + extractedItems.join(', '));
-    }
-    
-    console.log('Found JDK folder:', jdkFolder);
-    
-    // Hernoem naar java-17
-    const extractedJavaDir = path.join(RUNTIME_DIR, jdkFolder);
-    const finalJavaDir = path.join(RUNTIME_DIR, 'java-17');
-    
-    // Als java-17 al bestaat, verwijder het eerst
-    if (fs.existsSync(finalJavaDir)) {
-      fs.rmSync(finalJavaDir, { recursive: true, force: true });
-    }
-    
-    fs.renameSync(extractedJavaDir, finalJavaDir);
-    
-    // Cleanup zip
-    fs.unlinkSync(javaZip);
-    
-    // Check of java.exe bestaat
-    const finalJavaBin = path.join(finalJavaDir, 'bin', 'java.exe');
-    if (!fs.existsSync(finalJavaBin)) {
-      // Check andere locaties
-      const possibleBins = [
-        path.join(finalJavaDir, 'bin', 'java.exe'),
-        path.join(finalJavaDir, 'Contents', 'Home', 'bin', 'java.exe'), // Mac style
-      ];
-      
-      let found = false;
-      for (const bin of possibleBins) {
-        if (fs.existsSync(bin)) {
-          found = true;
-          break;
-        }
-      }
-      
-      if (!found) {
-        // List contents for debugging
-        const listDir = (dir, prefix = '') => {
-          let result = [];
-          try {
-            const items = fs.readdirSync(dir);
-            for (const item of items) {
-              const fullPath = path.join(dir, item);
-              result.push(prefix + item);
-              if (fs.statSync(fullPath).isDirectory() && prefix.length < 2) {
-                result = result.concat(listDir(fullPath, prefix + item + '/'));
-              }
-            }
-          } catch (e) {}
-          return result;
-        };
-        
-        const contents = listDir(finalJavaDir);
-        throw new Error('Java binary not found. Contents: ' + contents.slice(0, 20).join(', '));
-      }
-    }
-    
-    console.log('Java setup complete at:', JAVA_BIN);
-    return JAVA_BIN;
-    
-  } catch (error) {
-    console.error('Java setup failed:', error);
-    // Cleanup bij error
-    try {
-      if (fs.existsSync(javaZip)) fs.unlinkSync(javaZip);
-    } catch (e) {}
-    throw error;
-  }
+  console.log('Bundled Java not found!');
+  return false;
 }
+
 // AUTH handlers
 ipcMain.handle('start-microsoft-auth', async () => {
   try {
@@ -326,14 +195,11 @@ async function getMinecraftProfile(mcToken) {
 // MINECRAFT LAUNCH
 ipcMain.handle('launch-minecraft', async (event, version, authData) => {
   try {
-    // 1. Setup Java (download als nodig)
-    let javaPath;
-    try {
-      javaPath = await setupJava();
-    } catch (javaError) {
+    // 1. Check Java
+    if (!checkBundledJava()) {
       return { 
         success: false, 
-        error: 'Failed to setup Java: ' + javaError.message 
+        error: 'Bundled Java not found. Please reinstall the launcher.' 
       };
     }
 
@@ -442,12 +308,13 @@ ipcMain.handle('launch-minecraft', async (event, version, authData) => {
       '--versionType', 'release'
     ];
 
-    console.log('Launching Minecraft with Java:', javaPath);
+    console.log('Launching with bundled Java:', JAVA_BIN);
     
-    const mcProcess = spawn(javaPath, gameArgs, {
+    const mcProcess = spawn(JAVA_BIN, gameArgs, {
       detached: true,
       stdio: 'ignore',
-      cwd: MINECRAFT_DIR
+      cwd: MINECRAFT_DIR,
+      windowsHide: false
     });
 
     mcProcess.unref();
