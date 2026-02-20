@@ -1,20 +1,31 @@
 {
   "name": "blue-launcher",
   "version": "1.0.0",
+  "description": "Blue Launcher for Minecraft",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder --win=portable"
+  },
+  "build": {
+    "appId": "com.yourcompany.blue-launcher",
+    "productName": "Blue Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "java/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
   },
   "devDependencies": {
     "electron": "^28.0.0",
     "electron-builder": "^24.13.3"
-  },
-  "build": {
-    "appId": "com.roblox.loader",
-    "productName": "Blue Launcher",
-    "win": {
-      "target": "portable"
-    }
   }
 }
