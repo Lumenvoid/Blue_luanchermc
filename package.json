@@ -17,7 +17,6 @@
       "main.js",
       "preload.js",
       "index.html",
-      "java/**/*",
       "package.json"
     ],
     "win": {
