@@ -4,11 +4,15 @@ const https = require('https');
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const os = require('os');
+const crypto = require('crypto');
 
 let mainWindow;
 const CLIENT_ID = 'f457da6e-1e63-45dd-81c6-2f9370d484e3';
 
 const MINECRAFT_DIR = path.join(os.homedir(), 'AppData', 'Roaming', '.blue-minecraft');
+const RUNTIME_DIR = path.join(MINECRAFT_DIR, 'runtime');
+const JAVA_DIR = path.join(RUNTIME_DIR, 'java-17');
+const JAVA_BIN = path.join(JAVA_DIR, 'bin', 'java.exe');
 const LIBRARIES_DIR = path.join(MINECRAFT_DIR, 'libraries');
 const VERSIONS_DIR = path.join(MINECRAFT_DIR, 'versions');
 const ASSETS_DIR = path.join(MINECRAFT_DIR, 'assets');
@@ -75,6 +79,82 @@ function downloadFile(url, dest, onProgress) {
       reject(err);
     });
   });
+}
+
+// Extract ZIP using PowerShell
+async function extractZip(zipPath, destPath) {
+  return new Promise((resolve, reject) => {
+    // PowerShell Expand-Archive
+    const cmd = `powershell -command "Expand-Archive -Path '${zipPath}' -DestinationPath '${destPath}' -Force"`;
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+// Download and setup Java
+async function setupJava() {
+  if (fs.existsSync(JAVA_BIN)) {
+    console.log('Java already exists at:', JAVA_BIN);
+    return JAVA_BIN;
+  }
+
+  mainWindow.webContents.send('launch-status', 'Downloading Java 17... (first time only)');
+  
+  const javaZip = path.join(RUNTIME_DIR, 'java17.zip');
+  
+  // Zorg dat runtime dir bestaat
+  if (!fs.existsSync(RUNTIME_DIR)) {
+    fs.mkdirSync(RUNTIME_DIR, { recursive: true });
+  }
+
+  try {
+    // Download Eclipse Temurin Java 17 (kleinere download)
+    const javaUrl = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9.1/OpenJDK17U-jre_x64_windows_hotspot_17.0.9_9.zip';
+    
+    console.log('Downloading Java from:', javaUrl);
+    
+    await downloadFile(javaUrl, javaZip, (percent) => {
+      mainWindow.webContents.send('launch-status', `Downloading Java... ${percent}%`);
+    });
+
+    mainWindow.webContents.send('launch-status', 'Extracting Java...');
+    
+    // Extract naar temp directory
+    const tempExtractDir = path.join(RUNTIME_DIR, 'temp-java');
+    await extractZip(javaZip, tempExtractDir);
+    
+    // Zoek de java folder in de extracted files
+    const extractedItems = fs.readdirSync(tempExtractDir);
+    const jdkFolder = extractedItems.find(item => item.startsWith('jdk-') || item.startsWith('jre-'));
+    
+    if (!jdkFolder) {
+      throw new Error('Could not find JDK folder in extracted archive');
+    }
+    
+    // Hernoem naar java-17
+    const extractedJavaDir = path.join(tempExtractDir, jdkFolder);
+    fs.renameSync(extractedJavaDir, JAVA_DIR);
+    
+    // Cleanup
+    fs.rmSync(tempExtractDir, { recursive: true, force: true });
+    fs.unlinkSync(javaZip);
+    
+    if (!fs.existsSync(JAVA_BIN)) {
+      throw new Error('Java binary not found after extraction');
+    }
+    
+    console.log('Java setup complete at:', JAVA_BIN);
+    return JAVA_BIN;
+    
+  } catch (error) {
+    console.error('Java setup failed:', error);
+    throw error;
+  }
 }
 
 // AUTH handlers
@@ -177,39 +257,17 @@ async function getMinecraftProfile(mcToken) {
   });
 }
 
-// SIMPERE JAVA ZOEK FUNCTIE
-async function findJava() {
-  // Check omgevingsvariabele JAVA_HOME
-  if (process.env.JAVA_HOME) {
-    const javaPath = path.join(process.env.JAVA_HOME, 'bin', 'java.exe');
-    if (fs.existsSync(javaPath)) return javaPath;
-  }
-  
-  // Check PATH
-  return new Promise((resolve) => {
-    exec('where java', (error, stdout) => {
-      if (!error && stdout) {
-        const javaPath = stdout.trim().split('\n')[0];
-        resolve(javaPath);
-      } else {
-        resolve(null);
-      }
-    });
-  });
-}
-
 // MINECRAFT LAUNCH
 ipcMain.handle('launch-minecraft', async (event, version, authData) => {
   try {
-    // 1. Zoek Java
-    mainWindow.webContents.send('launch-status', 'Looking for Java...');
-    const javaPath = await findJava();
-    
-    if (!javaPath) {
-      shell.openExternal('https://adoptium.net/temurin/releases/?version=17');
+    // 1. Setup Java (download als nodig)
+    let javaPath;
+    try {
+      javaPath = await setupJava();
+    } catch (javaError) {
       return { 
         success: false, 
-        error: 'Java not found. Please install Java 17 from adoptium.net (opened in browser)' 
+        error: 'Failed to setup Java: ' + javaError.message 
       };
     }
 
@@ -250,12 +308,11 @@ ipcMain.handle('launch-minecraft', async (event, version, authData) => {
       });
     }
 
-    // 6. Download libraries (essentiële alleen)
+    // 6. Download libraries
     mainWindow.webContents.send('launch-status', 'Checking libraries...');
     const classpath = [];
     
     for (const lib of versionData.libraries || []) {
-      // Skip niet-essentiële libs voor nu
       if (lib.rules) {
         let skip = false;
         for (const rule of lib.rules) {
@@ -284,11 +341,27 @@ ipcMain.handle('launch-minecraft', async (event, version, authData) => {
       classpath.push(libPath);
     }
 
-    // 7. Launch!
+    // 7. Download asset index
+    const assetIndex = versionData.assetIndex;
+    if (assetIndex) {
+      const indexDir = path.join(ASSETS_DIR, 'indexes');
+      if (!fs.existsSync(indexDir)) fs.mkdirSync(indexDir, { recursive: true });
+      
+      const indexPath = path.join(indexDir, `${assetIndex.id}.json`);
+      if (!fs.existsSync(indexPath)) {
+        mainWindow.webContents.send('launch-status', 'Downloading assets index...');
+        await downloadFile(assetIndex.url, indexPath);
+      }
+    }
+
+    // 8. Launch!
     mainWindow.webContents.send('launch-status', 'Starting Minecraft...');
     
     const gameArgs = [
       `-Xmx2G`,
+      `-XX:+UseG1GC`,
+      `-XX:+ParallelRefProcEnabled`,
+      `-XX:MaxGCPauseMillis=200`,
       `-Djava.library.path=${versionDir}`,
       `-cp`, [...classpath, clientJarPath].join(';'),
       versionData.mainClass,
@@ -303,7 +376,7 @@ ipcMain.handle('launch-minecraft', async (event, version, authData) => {
       '--versionType', 'release'
     ];
 
-    console.log('Launching:', javaPath, gameArgs.join(' '));
+    console.log('Launching Minecraft with Java:', javaPath);
     
     const mcProcess = spawn(javaPath, gameArgs, {
       detached: true,
