@@ -113,8 +113,8 @@ async function setupJava() {
   }
 
   try {
-    // Download Eclipse Temurin Java 17 (kleinere download)
-    const javaUrl = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9.1/OpenJDK17U-jre_x64_windows_hotspot_17.0.9_9.zip';
+    // Download Eclipse Temurin JDK 17 (volledige versie met alles)
+    const javaUrl = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9.1/OpenJDK17U-jdk_x64_windows_hotspot_17.0.9_9.zip';
     
     console.log('Downloading Java from:', javaUrl);
     
@@ -124,28 +124,91 @@ async function setupJava() {
 
     mainWindow.webContents.send('launch-status', 'Extracting Java...');
     
-    // Extract naar temp directory
-    const tempExtractDir = path.join(RUNTIME_DIR, 'temp-java');
-    await extractZip(javaZip, tempExtractDir);
+    // Extract naar runtime dir
+    await extractZip(javaZip, RUNTIME_DIR);
     
-    // Zoek de java folder in de extracted files
-    const extractedItems = fs.readdirSync(tempExtractDir);
-    const jdkFolder = extractedItems.find(item => item.startsWith('jdk-') || item.startsWith('jre-'));
+    // Zoek de java folder (kan jdk-17.0.9+9 of vergelijkbaar zijn)
+    const extractedItems = fs.readdirSync(RUNTIME_DIR);
+    console.log('Extracted items:', extractedItems);
+    
+    // Zoek naar folder die begint met jdk- of jre-
+    let jdkFolder = extractedItems.find(item => {
+      const fullPath = path.join(RUNTIME_DIR, item);
+      return fs.statSync(fullPath).isDirectory() && (item.startsWith('jdk-') || item.startsWith('jre-'));
+    });
     
     if (!jdkFolder) {
-      throw new Error('Could not find JDK folder in extracted archive');
+      // Check subdirectories
+      for (const item of extractedItems) {
+        const itemPath = path.join(RUNTIME_DIR, item);
+        if (fs.statSync(itemPath).isDirectory()) {
+          const subItems = fs.readdirSync(itemPath);
+          const subJdk = subItems.find(sub => sub.startsWith('jdk-') || sub.startsWith('jre-'));
+          if (subJdk) {
+            jdkFolder = path.join(item, subJdk);
+            break;
+          }
+        }
+      }
     }
     
-    // Hernoem naar java-17
-    const extractedJavaDir = path.join(tempExtractDir, jdkFolder);
-    fs.renameSync(extractedJavaDir, JAVA_DIR);
+    if (!jdkFolder) {
+      throw new Error('Could not find JDK folder. Extracted: ' + extractedItems.join(', '));
+    }
     
-    // Cleanup
-    fs.rmSync(tempExtractDir, { recursive: true, force: true });
+    console.log('Found JDK folder:', jdkFolder);
+    
+    // Hernoem naar java-17
+    const extractedJavaDir = path.join(RUNTIME_DIR, jdkFolder);
+    const finalJavaDir = path.join(RUNTIME_DIR, 'java-17');
+    
+    // Als java-17 al bestaat, verwijder het eerst
+    if (fs.existsSync(finalJavaDir)) {
+      fs.rmSync(finalJavaDir, { recursive: true, force: true });
+    }
+    
+    fs.renameSync(extractedJavaDir, finalJavaDir);
+    
+    // Cleanup zip
     fs.unlinkSync(javaZip);
     
-    if (!fs.existsSync(JAVA_BIN)) {
-      throw new Error('Java binary not found after extraction');
+    // Check of java.exe bestaat
+    const finalJavaBin = path.join(finalJavaDir, 'bin', 'java.exe');
+    if (!fs.existsSync(finalJavaBin)) {
+      // Check andere locaties
+      const possibleBins = [
+        path.join(finalJavaDir, 'bin', 'java.exe'),
+        path.join(finalJavaDir, 'Contents', 'Home', 'bin', 'java.exe'), // Mac style
+      ];
+      
+      let found = false;
+      for (const bin of possibleBins) {
+        if (fs.existsSync(bin)) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        // List contents for debugging
+        const listDir = (dir, prefix = '') => {
+          let result = [];
+          try {
+            const items = fs.readdirSync(dir);
+            for (const item of items) {
+              const fullPath = path.join(dir, item);
+              result.push(prefix + item);
+              if (fs.statSync(fullPath).isDirectory() && prefix.length < 2) {
+                result = result.concat(listDir(fullPath, prefix + item + '/'));
+              }
+            }
+          } catch (e) {}
+          return result;
+        };
+        
+        const contents = listDir(finalJavaDir);
+        throw new Error('Java binary not found. Contents: ' + contents.slice(0, 20).join(', '));
+      }
     }
     
     console.log('Java setup complete at:', JAVA_BIN);
@@ -153,10 +216,13 @@ async function setupJava() {
     
   } catch (error) {
     console.error('Java setup failed:', error);
+    // Cleanup bij error
+    try {
+      if (fs.existsSync(javaZip)) fs.unlinkSync(javaZip);
+    } catch (e) {}
     throw error;
   }
 }
-
 // AUTH handlers
 ipcMain.handle('start-microsoft-auth', async () => {
   try {
