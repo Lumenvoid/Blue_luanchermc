@@ -1,22 +1,20 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const https = require('https');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 
 let mainWindow;
-const CLIENT_ID = 'f457da6e-1e63-45dd-81c6-2f9370d484e3';
+const CLIENT_ID = 'JOUW_CLIENT_ID_HIER';
 
 const MINECRAFT_DIR = path.join(os.homedir(), 'AppData', 'Roaming', '.blue-minecraft');
+const RUNTIME_DIR = path.join(MINECRAFT_DIR, 'runtime');
+const JAVA_DIR = path.join(RUNTIME_DIR, 'jdk-17');
+const JAVA_BIN = path.join(JAVA_DIR, 'bin', 'java.exe');
 const LIBRARIES_DIR = path.join(MINECRAFT_DIR, 'libraries');
 const VERSIONS_DIR = path.join(MINECRAFT_DIR, 'versions');
 const ASSETS_DIR = path.join(MINECRAFT_DIR, 'assets');
-
-// JAVA PAD - meegeleverd in de build
-const JAVA_BIN = app.isPackaged 
-  ? path.join(process.resourcesPath, 'java', 'jdk-17', 'bin', 'java.exe')
-  : path.join(__dirname, 'java', 'jdk-17', 'bin', 'java.exe');
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -81,15 +79,78 @@ function downloadFile(url, dest, onProgress) {
   });
 }
 
-// Check of meegeleverde Java bestaat
-function checkBundledJava() {
-  console.log('Looking for Java at:', JAVA_BIN);
+// Download en extract Java met PowerShell (geen antivirus issues)
+async function setupJava() {
+  // Check of we al Java hebben
   if (fs.existsSync(JAVA_BIN)) {
-    console.log('Found bundled Java!');
-    return true;
+    console.log('Java found at:', JAVA_BIN);
+    return JAVA_BIN;
   }
-  console.log('Bundled Java not found!');
-  return false;
+
+  // Maak directories
+  if (!fs.existsSync(RUNTIME_DIR)) {
+    fs.mkdirSync(RUNTIME_DIR, { recursive: true });
+  }
+
+  const javaZip = path.join(RUNTIME_DIR, 'java17.zip');
+
+  try {
+    mainWindow.webContents.send('launch-status', 'Downloading Java 17... (one time only)');
+
+    // Download van GitHub Releases (betrouwbaar, geen antivirus issues)
+    // Dit is een directe link naar een kleinere JRE versie
+    const javaUrl = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9.1/OpenJDK17U-jre_x64_windows_hotspot_17.0.9_9.zip';
+
+    await downloadFile(javaUrl, javaZip, (percent) => {
+      mainWindow.webContents.send('launch-status', `Downloading Java... ${percent}%`);
+    });
+
+    mainWindow.webContents.send('launch-status', 'Extracting Java...');
+
+    // Extract met PowerShell (werkt altijd)
+    await new Promise((resolve, reject) => {
+      const psCommand = `Expand-Archive -Path '${javaZip}' -DestinationPath '${RUNTIME_DIR}' -Force`;
+      exec(`powershell -Command "${psCommand}"`, (error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+
+    // Zoek de extracted folder (kan verschillende namen hebben)
+    const items = fs.readdirSync(RUNTIME_DIR);
+    const jdkFolder = items.find(item => {
+      const fullPath = path.join(RUNTIME_DIR, item);
+      return item.startsWith('jdk-') && fs.statSync(fullPath).isDirectory();
+    });
+
+    if (!jdkFolder) {
+      throw new Error('Could not find extracted JDK folder');
+    }
+
+    // Hernoem naar jdk-17 voor consistentie
+    const extractedPath = path.join(RUNTIME_DIR, jdkFolder);
+    fs.renameSync(extractedPath, JAVA_DIR);
+
+    // Verwijder zip
+    fs.unlinkSync(javaZip);
+
+    // Check of java.exe bestaat
+    if (!fs.existsSync(JAVA_BIN)) {
+      throw new Error('Java binary not found after extraction');
+    }
+
+    console.log('Java setup complete at:', JAVA_BIN);
+    return JAVA_BIN;
+
+  } catch (error) {
+    console.error('Java setup failed:', error);
+    // Cleanup bij error
+    try {
+      if (fs.existsSync(javaZip)) fs.unlinkSync(javaZip);
+      if (fs.existsSync(JAVA_DIR)) fs.rmSync(JAVA_DIR, { recursive: true });
+    } catch (e) {}
+    throw error;
+  }
 }
 
 // AUTH handlers
@@ -195,11 +256,14 @@ async function getMinecraftProfile(mcToken) {
 // MINECRAFT LAUNCH
 ipcMain.handle('launch-minecraft', async (event, version, authData) => {
   try {
-    // 1. Check Java
-    if (!checkBundledJava()) {
+    // 1. Setup Java (download als nodig)
+    let javaPath;
+    try {
+      javaPath = await setupJava();
+    } catch (javaError) {
       return { 
         success: false, 
-        error: 'Bundled Java not found. Please reinstall the launcher.' 
+        error: 'Failed to setup Java: ' + javaError.message 
       };
     }
 
@@ -308,9 +372,9 @@ ipcMain.handle('launch-minecraft', async (event, version, authData) => {
       '--versionType', 'release'
     ];
 
-    console.log('Launching with bundled Java:', JAVA_BIN);
+    console.log('Launching with Java:', javaPath);
     
-    const mcProcess = spawn(JAVA_BIN, gameArgs, {
+    const mcProcess = spawn(javaPath, gameArgs, {
       detached: true,
       stdio: 'ignore',
       cwd: MINECRAFT_DIR,
